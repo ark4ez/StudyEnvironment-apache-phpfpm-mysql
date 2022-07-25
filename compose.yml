@@ -1,0 +1,57 @@
+version: '3'
+services:
+  web:
+    image: httpd
+    networks:
+      default_network:
+        aliases:
+          - apache
+    ports:
+      - "80:80"
+    volumes:
+      - "./data/web/public/:/usr/local/apache2/htdocs/"
+      - "./data/web/conf/httpd.conf:/usr/local/apache2/conf/httpd.conf"
+      - "./data/web/conf/extra/proxy-php.conf:/usr/local/apache2/conf/extra/proxy-php.conf"
+  php-fpm:
+    image: php:8.0-fpm
+    networks:
+      default_network:
+        aliases:
+          - php-fpm
+    ports:
+      - "9000"
+    volumes:
+      - "./data/web/public/:/var/www/html/"
+  db:
+    image: mysql:latest
+    ports:
+      - "3306"
+    volumes:
+      - "db-data:/var/lib/mysql"
+    networks:
+      default_network:
+        aliases:
+          - "mysql"
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    restart: always
+  phpmyadmin:
+    image: phpmyadmin
+    networks:
+      - default_network
+    ports:
+      - "8085:8085"
+    restart: always
+    environment:
+      - PMA_PMADB=db
+      - PMA_USER=user
+      - PMA_PASSWORD=password
+      - PMA_PORT=3306
+
+volumes:
+  db-data:
+networks:
+  default_network:
